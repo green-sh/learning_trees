@@ -16,9 +16,6 @@ def score_split(x : np.ndarray[np.number] , y : np.ndarray[np.number], idx_split
 
     return left_error.sum() + right_error.sum(), left_prediction, right_prediction
 
-x = np.expand_dims(np.arange(-12, 12, 0.1), 0) # Create one feature
-y = 1/(1+np.exp(-x[0]))
-
 def score_feature(x, y, idx_feature):
     sorted_indices = np.argsort(x[idx_feature])
     sorted_x = x[idx_feature, sorted_indices]
@@ -29,11 +26,11 @@ def score_feature(x, y, idx_feature):
     best_prediction_left = 0
     best_prediction_right = 0
     
-    for split_idx in range(0, len(sorted_x-1)):
+    for split_idx in range(1, len(sorted_x)-1):
         score, left_prediction, right_prediction = score_split(sorted_x, sorted_y, idx_split=split_idx)
         if score < best:
             best = score
-            best_idx = split_idx
+            best_idx = split_idx-1
             best_prediction_left = left_prediction
             best_prediction_right = right_prediction
 
@@ -41,9 +38,6 @@ def score_feature(x, y, idx_feature):
 
     return best_split, best_prediction_left, best_prediction_right
 
-#print(f"Best at: {x[best_idx]}, {best_split}")
-
-split_point, left_prediction, right_prediction = score_feature(x, y, 0)
 
 class Tree():
     def __init__(self, split_point, feature_idx, left_prediction, right_prediction) -> None:
@@ -59,6 +53,11 @@ class Tree():
         res[mask == True] = self.right_prediction
 
         return res
+
+x = np.expand_dims(np.arange(-12, 12, 0.1), 0) # Create one feature
+y = 1/(1+np.exp(-x[0]))
+
+split_point, left_prediction, right_prediction = score_feature(x, y, 0)
 
 feature_idx = 0
 t = Tree(split_point, feature_idx, left_prediction, right_prediction)
