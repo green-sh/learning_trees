@@ -2,6 +2,7 @@
 let
 	my-packages = ps: with ps; [
 		numpy
+		matplotlib
 		pandas
 	];
 in pkgs.mkShell {
