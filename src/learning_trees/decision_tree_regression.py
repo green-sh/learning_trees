@@ -54,8 +54,7 @@ class ValueNode:
     def predict(self, x):
         return np.full(x.shape[1], self.value)
 
-
-class Tree:
+class RegressionTree:
     def __init__(self) -> None:
         pass
 
@@ -101,32 +100,12 @@ class Tree:
         if sum(mask == False) <= min_elements:
             self.left = ValueNode(best_left_prediction)
         else:
-            self.left = Tree().train(x_left, y_left, max_deph=max_deph - 1)
+            self.left = RegressionTree().train(x_left, y_left, max_deph=max_deph - 1)
 
         if sum(mask == True) <= min_elements:
             self.right = ValueNode(best_right_prediction)
         else:
-            self.right = Tree().train(x_right, y_right, max_deph=max_deph - 1)
+            self.right = RegressionTree().train(x_right, y_right, max_deph=max_deph - 1)
 
         return self
 
-
-x = np.row_stack(
-    [
-        np.linspace(-6, 6, 100),
-        np.linspace(6, -6, 100),
-    ]
-)  # Create one feature
-y = 1 / (1 + np.exp(-x[0]))
-# y = np.concatenate([np.full(50, 0), np.full(50, 1)])
-
-tree = Tree()
-
-tree.train(x, y)
-
-y_hat = tree.predict(x)
-
-plt.plot(y_hat, label="Guess")
-plt.plot(y, label="Real")
-plt.legend()
-plt.show()
