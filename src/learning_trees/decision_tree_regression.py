@@ -2,18 +2,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def score_split(x: np.ndarray[np.number], y: np.ndarray[np.number], idx_split: int) -> np.number:
+def score_split(x: np.ndarray[np.number], y: np.ndarray[np.number], idx_split: int):
     """
     Splits array and scores result
 
     Note:
-        data should be sorted already
+        - data should be sorted already
+        - there should be at least 2 elements in y
     """
-    left_prediction = y[idx_split:].mean()
-    right_prediction = y[:idx_split].mean()
+    left_prediction = y[:idx_split+1].mean()
+    right_prediction = y[idx_split:].mean()
 
-    left_error: np.ndarray[np.number] = (y[idx_split:] - left_prediction) ** 2
-    right_error: np.ndarray[np.number] = (y[:idx_split] - right_prediction) ** 2
+    left_error: np.ndarray[np.number] = (y[:idx_split+1] - left_prediction) ** 2
+    right_error: np.ndarray[np.number] = (y[idx_split:] - right_prediction) ** 2
 
     return left_error.sum() + right_error.sum(), left_prediction, right_prediction
 
