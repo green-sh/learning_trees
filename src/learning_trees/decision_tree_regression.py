@@ -21,7 +21,7 @@ def score_split(x: np.ndarray[np.number], y: np.ndarray[np.number], idx_split: i
 def score_feature(x, y, idx_feature):
     sorted_indices = np.argsort(x[idx_feature])
     sorted_x = x[idx_feature, sorted_indices]
-    sorted_y = y
+    sorted_y = y[sorted_indices]
 
     best = np.infty
     best_idx = 0
