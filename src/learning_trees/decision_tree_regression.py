@@ -18,12 +18,15 @@ def score_split(x: np.ndarray[np.number], y: np.ndarray[np.number], idx_split: i
     return left_error.sum() + right_error.sum(), left_prediction, right_prediction
 
 
-def score_feature(x, y, idx_feature):
+def get_best_feature(x, y, idx_feature):
+    """
+    Iterate through all split points and return best 
+    """
     sorted_indices = np.argsort(x[idx_feature])
     sorted_x = x[idx_feature, sorted_indices]
     sorted_y = y[sorted_indices]
 
-    best = np.infty
+    best_score = np.infty
     best_idx = 0
     best_prediction_left = 0
     best_prediction_right = 0
@@ -32,15 +35,15 @@ def score_feature(x, y, idx_feature):
         score, left_prediction, right_prediction = score_split(
             sorted_x, sorted_y, idx_split=split_idx
         )
-        if score < best:
-            best = score
+        if score < best_score:
+            best_score = score
             best_idx = split_idx - 1
             best_prediction_left = left_prediction
             best_prediction_right = right_prediction
 
     best_split = (x[idx_feature, best_idx] + x[idx_feature, best_idx + 1]) / 2
 
-    return best_split, best_prediction_left, best_prediction_right
+    return best_split, best_score, best_prediction_left, best_prediction_right
 
 
 class Tree:
@@ -68,10 +71,24 @@ x = np.row_stack(
 y = 1 / (1 + np.exp(-x[0]))
 # y = np.concatenate([np.full(50, 0), np.full(50, 1)])
 
+# Choose best feature and split
+# TODO code dupplication with above
+# Maybe create a dataclass with scored value equality value
+best_score = np.infty
+best_split = 0
+best_left_prediction = 0
+best_right_prediction = 0
+best_feature = 0
+for feature_idx in range(len(x)):
+    split_point, score, left_prediction, right_prediction = get_best_feature(x, y, feature_idx)
+    if score < best_score:
+        best_score = score
+        best_split = split_point
+        best_left_prediction = left_prediction
+        best_right_prediction = right_prediction
+        best_feature = feature_idx
 
-feature_idx = 1
-split_point, left_prediction, right_prediction = score_feature(x, y, feature_idx)
-t = Tree(split_point, feature_idx, left_prediction, right_prediction)
+t = Tree(best_split, best_feature, left_prediction, right_prediction)
 y_hat = t.predict(x)
 
 plt.plot(y_hat, label="Guess")
