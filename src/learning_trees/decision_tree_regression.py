@@ -61,8 +61,8 @@ class RegressionTree:
     def predict(self, x: np.ndarray[np.number]):
         mask = x[self.best_feature] < self.best_split
         res = np.empty(len(x[self.best_feature]))
-        res[mask == False] = self.left.predict(x[:, mask == False])
-        res[mask == True] = self.right.predict(x[:, mask == True])
+        res[mask == True] = self.left.predict(x[:, mask == True])
+        res[mask == False] = self.right.predict(x[:, mask == False])
 
         return res
 
@@ -93,16 +93,16 @@ class RegressionTree:
 
         # Do the split
         mask = x[self.best_feature] < self.best_split
-        x_left, y_left = x[:, mask == False], y[mask == False]
-        x_right, y_right = x[:, mask == True], y[mask == True]
+        x_left, y_left = x[:, mask == True], y[mask == True]
+        x_right, y_right = x[:, mask == False], y[mask == False]
 
         # Check if minimal minimal amounts of elements are there
-        if sum(mask == False) <= min_elements:
+        if sum(mask == True) <= min_elements:
             self.left = ValueNode(best_left_prediction)
         else:
             self.left = RegressionTree().train(x_left, y_left, max_deph=max_deph - 1)
 
-        if sum(mask == True) <= min_elements:
+        if sum(mask == False) <= min_elements:
             self.right = ValueNode(best_right_prediction)
         else:
             self.right = RegressionTree().train(x_right, y_right, max_deph=max_deph - 1)
