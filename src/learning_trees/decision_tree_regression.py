@@ -18,7 +18,7 @@ def score_split(x: np.ndarray[np.number], y: np.ndarray[np.number], idx_split: i
     return left_error.sum() + right_error.sum(), left_prediction, right_prediction
 
 
-def get_best_feature(x, y, idx_feature):
+def get_best_split(x, y, idx_feature):
     """
     Iterate through all split points and return best 
     """
@@ -46,20 +46,66 @@ def get_best_feature(x, y, idx_feature):
     return best_split, best_score, best_prediction_left, best_prediction_right
 
 
+class ValueNode():
+    def __init__(self, value) -> None:
+        self.value = value;
+    def predict(self, x):
+        return np.full(x.shape[1], self.value);
+
 class Tree:
-    def __init__(self, split_point, feature_idx, left_prediction, right_prediction) -> None:
-        self.split_point = split_point
-        self.feature_idx = feature_idx
-        self.left_prediction = left_prediction
-        self.right_prediction = right_prediction
+    def __init__(self) -> None:
+        pass
 
     def predict(self, x: np.ndarray[np.number]):
-        mask = x[feature_idx] < self.split_point
-        res = np.empty(len(x[feature_idx]))
-        res[mask == False] = self.left_prediction
-        res[mask == True] = self.right_prediction
+        mask = x[self.best_feature] < self.best_split
+        res = np.empty(len(x[self.best_feature]))
+        res[mask == False] = self.left.predict(x[:, mask == False])
+        res[mask == True] = self.right.predict(x[:, mask == True])
 
         return res
+
+    def train(self, x, y, max_deph = 5, min_elements = 2):
+        # Choose best feature and split
+        # TODO code dupplication with above
+        # Maybe create a dataclass with scored value equality value
+        best_score = np.infty
+        self.best_split = 0
+        best_left_prediction = 0
+        best_right_prediction = 0
+        self.best_feature = 0
+        for feature_idx in range(len(x)):
+            split_point, score, left_prediction, right_prediction = get_best_split(x, y, feature_idx)
+            if score < best_score:
+                best_score = score
+                best_left_prediction = left_prediction
+                best_right_prediction = right_prediction
+                self.best_split = split_point
+                self.best_feature = feature_idx
+        
+        if (max_deph == 0):
+            self.left = ValueNode(best_left_prediction)
+            self.right = ValueNode(best_right_prediction)
+            return self
+
+        # Do the split
+        mask = x[self.best_feature] < self.best_split
+        x_left, y_left = x[:, mask == False], y[mask == False]
+        x_right, y_right = x[:, mask == True], y[mask == True]
+
+        # Check if minimal minimal amounts of elements are there
+        if sum(mask == False) <= min_elements:
+            self.left = ValueNode(best_left_prediction)
+        else:
+            self.left = Tree().train(x_left, y_left, max_deph=max_deph-1)
+
+        if sum(mask == True) <= min_elements:
+            self.right = ValueNode(best_right_prediction)
+        else:
+            self.right = Tree().train(x_right, y_right, max_deph=max_deph-1)
+        
+        
+        return self
+
 
 
 x = np.row_stack(
@@ -71,25 +117,11 @@ x = np.row_stack(
 y = 1 / (1 + np.exp(-x[0]))
 # y = np.concatenate([np.full(50, 0), np.full(50, 1)])
 
-# Choose best feature and split
-# TODO code dupplication with above
-# Maybe create a dataclass with scored value equality value
-best_score = np.infty
-best_split = 0
-best_left_prediction = 0
-best_right_prediction = 0
-best_feature = 0
-for feature_idx in range(len(x)):
-    split_point, score, left_prediction, right_prediction = get_best_feature(x, y, feature_idx)
-    if score < best_score:
-        best_score = score
-        best_split = split_point
-        best_left_prediction = left_prediction
-        best_right_prediction = right_prediction
-        best_feature = feature_idx
+tree = Tree()
 
-t = Tree(best_split, best_feature, left_prediction, right_prediction)
-y_hat = t.predict(x)
+tree.train(x, y)
+
+y_hat = tree.predict(x)
 
 plt.plot(y_hat, label="Guess")
 plt.plot(y, label="Real")
