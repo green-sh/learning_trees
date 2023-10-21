@@ -34,7 +34,7 @@ def score_feature(x, y, idx_feature):
             best_prediction_left = left_prediction
             best_prediction_right = right_prediction
 
-    best_split = (y[best_idx]+y[best_idx+1])/2
+    best_split = (x[idx_feature, best_idx]+x[idx_feature, best_idx+1])/2
 
     return best_split, best_prediction_left, best_prediction_right
 
@@ -54,15 +54,20 @@ class Tree():
 
         return res
 
-x = np.expand_dims(np.arange(-12, 12, 0.1), 0) # Create one feature
+x = np.row_stack([
+    np.linspace(-6, 6, 100),
+    np.linspace(6, -6, 100),
+    ]) # Create one feature
 y = 1/(1+np.exp(-x[0]))
+# y = np.concatenate([np.full(50, 0), np.full(50, 1)])
 
 split_point, left_prediction, right_prediction = score_feature(x, y, 0)
 
-feature_idx = 0
+feature_idx = 1
 t = Tree(split_point, feature_idx, left_prediction, right_prediction)
 y_hat = t.predict(x)
 
-plt.plot(x[0], y_hat)
-plt.plot(x[0], y)
+plt.plot(x[0], y_hat, label="Guess")
+plt.plot(x[0], y, label="Real")
+plt.legend()
 plt.show()
