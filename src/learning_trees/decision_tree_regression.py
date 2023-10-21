@@ -20,7 +20,7 @@ def score_split(x: np.ndarray[np.number], y: np.ndarray[np.number], idx_split: i
 
 def get_best_split(x, y, idx_feature):
     """
-    Iterate through all split points and return best 
+    Iterate through all split points and return best
     """
     sorted_indices = np.argsort(x[idx_feature])
     sorted_x = x[idx_feature, sorted_indices]
@@ -46,11 +46,13 @@ def get_best_split(x, y, idx_feature):
     return best_split, best_score, best_prediction_left, best_prediction_right
 
 
-class ValueNode():
+class ValueNode:
     def __init__(self, value) -> None:
-        self.value = value;
+        self.value = value
+
     def predict(self, x):
-        return np.full(x.shape[1], self.value);
+        return np.full(x.shape[1], self.value)
+
 
 class Tree:
     def __init__(self) -> None:
@@ -64,7 +66,7 @@ class Tree:
 
         return res
 
-    def train(self, x, y, max_deph = 5, min_elements = 2):
+    def train(self, x, y, max_deph=5, min_elements=2):
         # Choose best feature and split
         # TODO code dupplication with above
         # Maybe create a dataclass with scored value equality value
@@ -74,15 +76,17 @@ class Tree:
         best_right_prediction = 0
         self.best_feature = 0
         for feature_idx in range(len(x)):
-            split_point, score, left_prediction, right_prediction = get_best_split(x, y, feature_idx)
+            split_point, score, left_prediction, right_prediction = get_best_split(
+                x, y, feature_idx
+            )
             if score < best_score:
                 best_score = score
                 best_left_prediction = left_prediction
                 best_right_prediction = right_prediction
                 self.best_split = split_point
                 self.best_feature = feature_idx
-        
-        if (max_deph == 0):
+
+        if max_deph == 0:
             self.left = ValueNode(best_left_prediction)
             self.right = ValueNode(best_right_prediction)
             return self
@@ -96,16 +100,14 @@ class Tree:
         if sum(mask == False) <= min_elements:
             self.left = ValueNode(best_left_prediction)
         else:
-            self.left = Tree().train(x_left, y_left, max_deph=max_deph-1)
+            self.left = Tree().train(x_left, y_left, max_deph=max_deph - 1)
 
         if sum(mask == True) <= min_elements:
             self.right = ValueNode(best_right_prediction)
         else:
-            self.right = Tree().train(x_right, y_right, max_deph=max_deph-1)
-        
-        
-        return self
+            self.right = Tree().train(x_right, y_right, max_deph=max_deph - 1)
 
+        return self
 
 
 x = np.row_stack(
