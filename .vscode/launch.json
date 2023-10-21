@@ -18,9 +18,11 @@
             "type": "python",
             "request": "launch",
             "module": "unittest",
-            "cwd": "${workspaceFolder}/src",
+            "cwd": "${workspaceFolder}",
             "args": [
-                "test.test_regression_tree"
+                "discover",
+                "-s", "src/test/",
+                "-t", "src/",
             ],
             "justMyCode": true
         }
