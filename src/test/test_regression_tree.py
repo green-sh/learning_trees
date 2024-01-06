@@ -30,5 +30,7 @@ class RegressionTreeTest(unittest.TestCase):
         # Because the splits are symetric score should be equal
         self.assertAlmostEqual(score1, score2)
 
+
+
 if __name__=="__main__":
     unittest.main()

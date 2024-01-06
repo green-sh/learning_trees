@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 def score_split(x: np.ndarray[np.number], y: np.ndarray[np.number], idx_split: int):
     """
     Splits array and scores result
@@ -18,10 +17,27 @@ def score_split(x: np.ndarray[np.number], y: np.ndarray[np.number], idx_split: i
 
     return left_error.sum() + right_error.sum(), left_prediction, right_prediction
 
-
 def get_best_split(x, y, idx_feature):
     """
-    Iterate through all split points and return best
+    Iterate through all split points and return best split
+
+    The dataset d is devided into 2 sets s1, s2 with a given split point p where:
+    - s1 is the subset of d of all elements smaller then the splitpoint p
+    - s2 is the subset of d of all elements bigger then the splitpoint p
+
+    then we predict 
+    - mean(s1) if x is smaller than p or
+    - mean(s2) if x is bigger then p
+    
+    p is determined by brute force
+    1. go through every data point
+        1. split data at this point
+        2. evaluate split
+    2. return best split point (and the score and predictions it made)
+
+    A few optimization ideas:
+    - choose random splits 
+    - choose split in a given intervall
     """
     sorted_indices = np.argsort(x[idx_feature])
     sorted_x = x[idx_feature, sorted_indices]

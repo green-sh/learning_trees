@@ -27,14 +27,22 @@ def plot_split_4():
     
     plt.clf()
     plt.plot(y, label="y")
-    plt.plot([0, 1], np.full(2, left_result), label="left split at 1")
-    plt.plot([1, 2, 3], np.full(3, right_result), label="right split at 1")
+    plt.plot([0, 1, 1, 2, 3], 
+            np.concatenate([
+                np.full(2, left_result), 
+                np.full(3, right_result)
+            ]),
+            label="split at 1")
 
     # Select 1st
     score2, left_result, right_result = score_split(x, y, 2)
 
-    plt.plot([0, 1, 2], np.full(3, left_result), label="left split at 2")
-    plt.plot([2, 3], np.full(2, right_result), label="right split at 2")
+    plt.plot([0, 1, 2, 2, 3], 
+            np.concatenate([
+                np.full(3, left_result), 
+                np.full(2, right_result)
+            ]),
+            label="split at 2")
     plt.legend()
     plt.savefig("../images/split_4.png")
 
@@ -55,10 +63,10 @@ def plot_sin_regression_tree():
 
 
 def plot_sigmoid_regression_tree():
-    x = np.expand_dims(np.linspace(-6, 6, 100), 0)
+    x = np.expand_dims(np.linspace(-6, 6, 1000), 0)
     y = 1 / (1+np.exp(-x[0]))
 
-    tree = RegressionTree().train(x, y)
+    tree = RegressionTree().train(x, y, max_deph=3, min_elements=2)
     y_hat = tree.predict(x)
 
     plt.clf()
@@ -67,7 +75,4 @@ def plot_sigmoid_regression_tree():
     plt.legend()
     plt.savefig("../images/regression_sigmoid.png")
 
-plot_split_3()
-plot_split_4()
-plot_sin_regression_tree()
 plot_sigmoid_regression_tree()
