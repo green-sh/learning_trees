@@ -1,9 +1,8 @@
 
-from learning_trees.decision_tree_regression import RegressionTree, get_best_split, score_split
+from learning_trees.regression import RegressionTree, get_best_split, score_split
 import numpy as np
 import unittest
 import matplotlib.pyplot as plt
-
 
 def plot_split_3():
     x = np.array([0, 1, 2])
@@ -15,7 +14,7 @@ def plot_split_3():
     plt.plot(y, label="y")
     plt.plot([0, 1], np.full(2, left_result))
     plt.plot([1, 2], np.full(2, right_result))
-    plt.savefig("../images/split_3.png")
+    plt.savefig("images/split_3.png")
 
 
 def plot_split_4():
@@ -44,7 +43,7 @@ def plot_split_4():
             ]),
             label="split at 2")
     plt.legend()
-    plt.savefig("../images/split_4.png")
+    plt.savefig("images/split_4.png")
 
     print(score1 == score2)
 
@@ -59,7 +58,7 @@ def plot_sin_regression_tree():
     plt.plot(x[0], y, label="Sin")
     plt.plot(x[0], y_hat, label="Prediction")
     plt.legend()
-    plt.savefig("../images/regression_sin.png")
+    plt.savefig("images/regression_sin.png")
 
 
 def plot_sigmoid_regression_tree():
@@ -73,6 +72,7 @@ def plot_sigmoid_regression_tree():
     plt.plot(x[0], y, label="Sigmoid")
     plt.plot(x[0], y_hat, label="Prediction")
     plt.legend()
-    plt.savefig("../images/regression_sigmoid.png")
+    plt.savefig("images/regression_sigmoid.png")
 
 plot_sigmoid_regression_tree()
+plot_split_3()

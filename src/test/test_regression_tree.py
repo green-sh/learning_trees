@@ -1,4 +1,4 @@
-from learning_trees.decision_tree_regression import RegressionTree, get_best_split, score_split
+from learning_trees.regression import RegressionTree, get_best_split, score_split
 import numpy as np
 import unittest
 import matplotlib.pyplot as plt
