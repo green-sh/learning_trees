@@ -11,7 +11,7 @@ def test_diabetes():
     tree = RegressionTree().train(X_train.T, y_train, max_deph=10, min_elements=1)
 
     from sklearn.tree import DecisionTreeRegressor
-    tree_sklearn = DecisionTreeRegressor().fit(X_train, y_train)
+    tree_sklearn = DecisionTreeRegressor(max_depth = 10).fit(X_train, y_train)
 
     print(f"Train error: {np.mean((tree.predict(X_train.T) - y_train)**2)}")
     print(f"Test error: {np.mean((tree.predict(X_test.T) - y_test)**2)}")

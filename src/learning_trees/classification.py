@@ -111,11 +111,13 @@ class Node():
             return self.result
 
         return self.children[data[self.key]].predict(data)
-    
-data = pd.read_csv("./decision_tree/data.txt" , delimiter=";", header=0, index_col="Day", dtype="category")
+
+def accuracy(prediction, y):
+    return str(100 * np.mean(prediction == y)) + "%"
+
+data = pd.read_csv("data/data.txt" , delimiter=";", header=0, index_col="Day", dtype="category")
 
 model = Decision_Tree()
 model.train(data)
 result = model.predict(data)
-print(data)
-print(result)
+print(accuracy(np.array(result), np.array(data["Decision"])))
