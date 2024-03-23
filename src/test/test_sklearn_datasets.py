@@ -8,7 +8,7 @@ def test_diabetes():
     X_train, X_test, y_train, y_test = train_test_split(diabetes.data, diabetes.target, random_state=0)
 
     from learning_trees.regression import RegressionTree
-    tree = RegressionTree().train(X_train.T, y_train, max_deph=10)
+    tree = RegressionTree().train(X_train.T, y_train, max_deph=10, min_elements=1)
 
     from sklearn.tree import DecisionTreeRegressor
     tree_sklearn = DecisionTreeRegressor().fit(X_train, y_train)

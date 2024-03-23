@@ -12,7 +12,7 @@ poetry install
 
 Then you can just execute it via
 ```python
-from learning_trees.decision_tree_regression import RegressionTree
+from learning_trees.regression import RegressionTree
 import numpy as np
 
 def sigmoid(x):
