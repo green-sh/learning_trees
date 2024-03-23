@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def score_split(x: np.ndarray[np.number], y: np.ndarray[np.number], idx_split: int):
     """
     Splits array and scores result
@@ -64,17 +65,27 @@ def get_best_split(x, y, idx_feature):
 
 
 class ValueNode:
-    def __init__(self, value) -> None:
+    def __init__(self, value, graph = None, parent_name = None) -> None:
         self.value = value
+        if graph:
+            graph.node(str(id(self)), f"Value:\n{value:.2f}")
+            if parent_name:
+                graph.edge(parent_name, str(id(self)))
 
     def predict(self, x):
         return np.full(x.shape[1], self.value)
 
+# TODO: implement Node class instead of ValueNode and RegressionTree
+    
 class RegressionTree:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, init_plot = False, graph = None, parent_name=None) -> None:
+        self.graph = graph
+        self.parent_name = parent_name
+        if init_plot:
+            import graphviz
+            self.graph = graphviz.Digraph()
 
-    def predict(self, x: np.ndarray[np.number]):
+    def predict(self, x: np.ndarray[np.ndarray[np.number]]):
         mask = x[self.best_feature] < self.best_split
         res = np.empty(len(x[self.best_feature]))
         res[mask == True] = self.left.predict(x[:, mask == True])
@@ -102,9 +113,14 @@ class RegressionTree:
                 self.best_split = split_point
                 self.best_feature = feature_idx
 
+        if self.graph:
+            self.graph.node(str(id(self)), f"{self.best_feature}\n{self.best_split:.2f}")
+            if self.parent_name:
+                self.graph.edge(self.parent_name, str(id(self)))
+
         if max_deph == 0:
-            self.left = ValueNode(best_left_prediction)
-            self.right = ValueNode(best_right_prediction)
+            self.left = ValueNode(best_left_prediction, graph=self.graph, parent_name=str(id(self)))
+            self.right = ValueNode(best_right_prediction, graph=self.graph, parent_name=str(id(self)))
             return self
 
         # Do the split
@@ -114,14 +130,14 @@ class RegressionTree:
 
         # Check if minimal minimal amounts of elements are there
         if sum(mask == True) <= min_elements:
-            self.left = ValueNode(best_left_prediction)
+            self.left = ValueNode(best_left_prediction, graph=self.graph, parent_name=str(id(self)))
         else:
-            self.left = RegressionTree().train(x_left, y_left, max_deph=max_deph - 1)
-
+            self.left = RegressionTree(graph=self.graph, parent_name=str(id(self))).train(x_left, y_left, max_deph=max_deph - 1)
+            
         if sum(mask == False) <= min_elements:
-            self.right = ValueNode(best_right_prediction)
+            self.right = ValueNode(best_right_prediction, graph=self.graph, parent_name=str(id(self)))
         else:
-            self.right = RegressionTree().train(x_right, y_right, max_deph=max_deph - 1)
+            self.right = RegressionTree(graph=self.graph, parent_name=str(id(self))).train(x_right, y_right, max_deph=max_deph - 1)
 
         return self
 

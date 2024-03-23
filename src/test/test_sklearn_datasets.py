@@ -8,18 +8,15 @@ def test_diabetes():
     X_train, X_test, y_train, y_test = train_test_split(diabetes.data, diabetes.target, random_state=0)
 
     from learning_trees.regression import RegressionTree
-    tree = RegressionTree().train(X_train.T, y_train, max_deph=10, min_elements=1)
-
-    from sklearn.tree import DecisionTreeRegressor
-    tree_sklearn = DecisionTreeRegressor().fit(X_train, y_train)
-
+    tree = RegressionTree(init_plot=True).train(X_train.T, y_train, max_deph=20)
     print(f"Train error: {np.mean((tree.predict(X_train.T) - y_train)**2)}")
     print(f"Test error: {np.mean((tree.predict(X_test.T) - y_test)**2)}")
 
+    print(tree.graph.render("images/regression_tree"))
+
+    from sklearn.tree import DecisionTreeRegressor
+    tree_sklearn = DecisionTreeRegressor().fit(X_train, y_train)
     print(f"Sklearn Train error: {np.mean((tree_sklearn.predict(X_train) - y_train)**2)}")
     print(f"Sklearn Test error: {np.mean((tree_sklearn.predict(X_test) - y_test)**2)}")
-
-
-    pass
 
 test_diabetes()

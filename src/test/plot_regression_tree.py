@@ -74,5 +74,12 @@ def plot_sigmoid_regression_tree():
     plt.legend()
     plt.savefig("images/regression_sigmoid.png")
 
-plot_sigmoid_regression_tree()
-plot_split_3()
+def plot_graph_regression_tree():
+
+    x = np.expand_dims(np.linspace(-6, 6, 1000), 0)
+    y = 1 / (1+np.exp(-x[0]))
+    tree = RegressionTree(init_plot=True).train(x, y, max_deph=4, min_elements=2)
+
+    tree.graph.render("images/regression_tree")
+
+plot_graph_regression_tree()
