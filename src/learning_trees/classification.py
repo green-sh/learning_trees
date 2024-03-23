@@ -1,123 +1,126 @@
+import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 
-class Decision_Tree():
-    def __init__(self) -> None:
-        self.head = None
+def score_split(x: np.ndarray[np.number], y: np.ndarray[np.number], idx_split: int):
+    """
+    Splits array and scores result
+
+    Note:
+        - data should be sorted already
+        - there should be at least 2 elements in y
+    """
+    left_prediction = y[:idx_split+1].mean()
+    right_prediction = y[idx_split:].mean()
+
+    left_error: np.ndarray[np.number] = (y[:idx_split+1] - left_prediction) ** 2
+    right_error: np.ndarray[np.number] = (y[idx_split:] - right_prediction) ** 2
+
+    return left_error.sum() + right_error.sum(), left_prediction, right_prediction
+
+def get_best_split(x, y, idx_feature):
+    """
+    Iterate through all split points and return best split
+
+    The dataset d is devided into 2 sets s1, s2 with a given split point p where:
+    - s1 is the subset of d of all elements smaller then the splitpoint p
+    - s2 is the subset of d of all elements bigger then the splitpoint p
+
+    then we predict 
+    - mean(s1) if x is smaller than p or
+    - mean(s2) if x is bigger then p
     
-    def train(self, data : pd.DataFrame) -> None:
-        self.head = Node()
-        self.head.train(data)
+    p is determined by brute force
+    1. go through every data point
+        1. split data at this point
+        2. evaluate split
+    2. return best split point (and the score and predictions it made)
 
-    def predict(self, data : pd.DataFrame) -> list:
-        if self.head:
-            result_list = []
-            for index, row in data.iterrows():
-                result = self.head.predict(row)
-                result_list.append(result)
-            return result_list
+    A few optimization ideas:
+    - choose random splits 
+    - choose split in a given intervall
+    """
+    sorted_indices = np.argsort(x[idx_feature])
+    sorted_x = x[idx_feature, sorted_indices]
+    sorted_y = y[sorted_indices]
+
+    best_score = np.infty
+    best_idx = 0
+    best_prediction_left = 0
+    best_prediction_right = 0
+
+    for split_idx in range(1, len(sorted_x) - 1):
+        score, left_prediction, right_prediction = score_split(
+            sorted_x, sorted_y, idx_split=split_idx
+        )
+        if score < best_score:
+            best_score = score
+            best_idx = split_idx - 1
+            best_prediction_left = left_prediction
+            best_prediction_right = right_prediction
+
+    best_split = (x[idx_feature, best_idx] + x[idx_feature, best_idx + 1]) / 2
+
+    return best_split, best_score, best_prediction_left, best_prediction_right
+
+
+class ValueNode:
+    def __init__(self, value) -> None:
+        self.value = value
+
+    def predict(self, x):
+        return np.full(x.shape[1], self.value)
+
+class RegressionTree:
+    def __init__(self) -> None:
+        pass
+
+    def predict(self, x: np.ndarray[np.number]):
+        mask = x[self.best_feature] < self.best_split
+        res = np.empty(len(x[self.best_feature]))
+        res[mask == True] = self.left.predict(x[:, mask == True])
+        res[mask == False] = self.right.predict(x[:, mask == False])
+
+        return res
+
+    def train(self, x, y, max_deph=5, min_elements=2):
+        # Choose best feature and split
+        # TODO code dupplication with above
+        # Maybe create a dataclass with scored value equality value
+        best_score = np.infty
+        self.best_split = 0
+        best_left_prediction = 0
+        best_right_prediction = 0
+        self.best_feature = 0
+        for feature_idx in range(len(x)):
+            split_point, score, left_prediction, right_prediction = get_best_split(
+                x, y, feature_idx
+            )
+            if score < best_score:
+                best_score = score
+                best_left_prediction = left_prediction
+                best_right_prediction = right_prediction
+                self.best_split = split_point
+                self.best_feature = feature_idx
+
+        if max_deph == 0:
+            self.left = ValueNode(best_left_prediction)
+            self.right = ValueNode(best_right_prediction)
+            return self
+
+        # Do the split
+        mask = x[self.best_feature] < self.best_split
+        x_left, y_left = x[:, mask == True], y[mask == True]
+        x_right, y_right = x[:, mask == False], y[mask == False]
+
+        # Check if minimal minimal amounts of elements are there
+        if sum(mask == True) <= min_elements:
+            self.left = ValueNode(best_left_prediction)
         else:
-            print("The model hasnt been trained yet")
-    
-    
-class Node():
-    def __init__(self) -> None:
-        # feature to be used as key for this node
-        self.key = None
-        # dictionary with categories of the feature as key and a new predict node as value
-        self.children = {}
-        # category of Y that is the final output of the leaf
-        self.result = None
-        # no representation within train dataset
-        self.out_of_dataset = False
+            self.left = RegressionTree().train(x_left, y_left, max_deph=max_deph - 1)
 
-    def train(self, data : pd.DataFrame) -> None:
-        if data.empty:
-            self.out_of_dataset = True
-            return
-        
-        X = data.iloc[:,:-1]
-        y = data.iloc[:,-1]
-        # base cases
-        # base case no features left
-        if len(data.columns) == 1:
-            self.result = y.value_counts().idxmax()
-            return
-        # base case one category left in y
-        if y.cat.categories.size == 1:
-            self.result = y.cat.categories[0]
-            return
+        if sum(mask == False) <= min_elements:
+            self.right = ValueNode(best_right_prediction)
+        else:
+            self.right = RegressionTree().train(x_right, y_right, max_deph=max_deph - 1)
 
-        # get best feature
-        best_feature = self.get_best_feature_gini(X, y)
-        self.key = best_feature
-
-        for category in data[best_feature].cat.categories:
-            new_data = data[data[best_feature] == category]
-            new_data = new_data.drop(columns=best_feature)
-            # refresh categories of y because they are used for determining if only one category is left
-            new_data.iloc[:,-1] = new_data.iloc[:,-1].cat.remove_unused_categories()
-            self.children[category] = Node()
-            self.children[category].train(new_data)
-
-
-    def get_best_feature_gini(self, X, y) -> str:
-        """returns best_feature by calculating 
-            count matrices and then calculating 
-            the weighted gini index on the matrices
-            to determine the best feature for splitting"""
-
-        num_result = y.cat.categories.size
-        best_feature = None
-        best_feature_gini = 0
-        for feature in X:
-            
-            num_values = X[feature].cat.categories.size
-
-            count_matrix = np.zeros([num_values, num_result])
-            
-            # fill in count matrix
-            for value, result in zip(X[feature].cat.codes, y.cat.codes):
-                count_matrix[value][result] += 1
-
-            # calculate gini feature and set best feature
-            gini_feature = self.weighted_gini_feature(count_matrix)
-            if gini_feature > best_feature_gini:
-                best_feature = feature
-                best_feature_gini = gini_feature
-
-        return best_feature
-
-    def weighted_gini_feature(self, count_matrix):
-        gini_feature = 0
-
-        for row in count_matrix:
-            gini_category = 0
-            # sum all the occurences of the category in respect to result category squared
-            for value in row:
-                gini_category += value**2
-            gini_category / sum(row)
-            gini_feature += gini_category
-
-        return gini_feature
-
-    def predict(self, data):
-        """ takes a row of features and returns the prediction
-            of the trained Decision Tree"""
-        if self.out_of_dataset:
-            raise Exception("Input Data is out of Training Dataset")
-
-        if self.result:
-            return self.result
-
-        return self.children[data[self.key]].predict(data)
-
-def accuracy(prediction, y):
-    return str(100 * np.mean(prediction == y)) + "%"
-
-data = pd.read_csv("data/data.txt" , delimiter=";", header=0, index_col="Day", dtype="category")
-
-model = Decision_Tree()
-model.train(data)
-result = model.predict(data)
-print(accuracy(np.array(result), np.array(data["Decision"])))
+        return self

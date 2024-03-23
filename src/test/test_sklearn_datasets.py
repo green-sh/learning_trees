@@ -1,5 +1,5 @@
 
-def test_diabetes():
+def test_regression_diabetes():
     from sklearn.datasets import load_diabetes
     from sklearn.model_selection import train_test_split
     import numpy as np
@@ -22,4 +22,16 @@ def test_diabetes():
 
     pass
 
-test_diabetes()
+def test_classifcation_tree():
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.model_selection import train_test_split
+    import numpy as np
+
+    breast_cancer = load_breast_cancer()
+    X_train, X_test, y_train, y_test = train_test_split(breast_cancer.data, breast_cancer.target, random_state=0)
+
+    pass
+
+
+test_regression_diabetes()
+# test_classifcation_tree()
