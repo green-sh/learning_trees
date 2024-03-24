@@ -21,10 +21,11 @@ def plot_split_3():
     assert right_result == 2.5
 
 def plot_sin_regression_tree():
-    x = np.expand_dims(np.linspace(-6, 6, 100), 0)
+    x = np.expand_dims(np.linspace(-6*np.pi, 6*np.pi, 100), 0)
     y = np.sin(x[0])
+    # y = 2*x[0]**2 + 3
 
-    tree = RegressionTree(init_plot=True).train(x, y, max_deph=2, min_elements=2)
+    tree = RegressionTree(init_plot=True).train(x, y, max_deph=2, min_elements=1)
 
     from sklearn.tree import DecisionTreeRegressor
     tree_sklearn = DecisionTreeRegressor(max_depth=2).fit(x.T, y)
