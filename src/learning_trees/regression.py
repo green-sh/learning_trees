@@ -112,7 +112,7 @@ class RegressionTree:
                 self.graph.edge(self.parent_name, str(id(self)))
 
         # base case max depth reached
-        if max_deph <= 1:
+        if max_depth <= 1:
             self.left = ValueNode(best_left_prediction, graph=self.graph, parent_name=str(id(self)))
             self.right = ValueNode(best_right_prediction, graph=self.graph, parent_name=str(id(self)))
             return self
@@ -126,11 +126,11 @@ class RegressionTree:
         if len(np.unique(x_left)) <= min_elements:
             self.left = ValueNode(best_left_prediction, graph=self.graph, parent_name=str(id(self)))
         else:
-            self.left = RegressionTree(graph=self.graph, parent_name=str(id(self))).train(x_left, y_left, max_deph=max_deph - 1, min_elements=min_elements)
+            self.left = RegressionTree(graph=self.graph, parent_name=str(id(self))).train(x_left, y_left, max_depth=max_depth - 1, min_elements=min_elements)
             
         if len(np.unique(x_right)) <= min_elements:
             self.right = ValueNode(best_right_prediction, graph=self.graph, parent_name=str(id(self)))
         else:
-            self.right = RegressionTree(graph=self.graph, parent_name=str(id(self))).train(x_right, y_right, max_deph=max_deph - 1, min_elements=min_elements)
+            self.right = RegressionTree(graph=self.graph, parent_name=str(id(self))).train(x_right, y_right, max_depth=max_depth - 1, min_elements=min_elements)
 
         return self
