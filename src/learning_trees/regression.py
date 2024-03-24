@@ -126,8 +126,7 @@ class RegressionTree:
         x_left, y_left = x[:, :self.best_split_idx], y[:self.best_split_idx]
         x_right, y_right = x[:, self.best_split_idx:], y[self.best_split_idx:]
 
-        # base case only {min_elements} samples left in x
-        # Check if minimal minimal amounts of elements are there
+        # base case less than {min_elements} unique values left in x
         if unique_values <= min_elements:
             self.left = ValueNode(best_left_prediction, graph=self.graph, parent_name=str(id(self)))
         else:
