@@ -1,65 +1,48 @@
 
-from learning_trees.regression import RegressionTree, get_best_split, score_split
+from learning_trees.regression import RegressionTree, get_best_split
 import numpy as np
 import unittest
 import matplotlib.pyplot as plt
 
 def plot_split_3():
-    x = np.array([0, 1, 2])
-    y = np.array([0, 1, 2])
-
-    score, left_result, right_result = score_split(x, y, 1)
-
-    plt.clf()
-    plt.plot(y, label="y")
-    plt.plot([0, 1], np.full(2, left_result))
-    plt.plot([1, 2], np.full(2, right_result))
-    plt.savefig("images/split_3.png")
-
-
-def plot_split_4():
-    x = np.array([0, 0, 0, 0])
+    x = np.array([0, 1, 2, 3])
     y = np.array([0, 1, 2, 3])
 
-    # Select 1st
-    score1, left_result, right_result = score_split(x, y, 1)
-    
+    split, score, left_result, right_result = get_best_split(np.expand_dims(x, 0), y, 0)
+    mask = x < split
+
     plt.clf()
-    plt.plot(y, label="y")
-    plt.plot([0, 1, 1, 2, 3], 
-            np.concatenate([
-                np.full(2, left_result), 
-                np.full(3, right_result)
-            ]),
-            label="split at 1")
+    plt.scatter(x, y, label="y")
+    plt.plot(x[mask], np.full(2, left_result))
+    plt.plot(x[~mask], np.full(2, right_result))
+    plt.savefig("images/split_3.png")
 
-    # Select 1st
-    score2, left_result, right_result = score_split(x, y, 2)
-
-    plt.plot([0, 1, 2, 2, 3], 
-            np.concatenate([
-                np.full(3, left_result), 
-                np.full(2, right_result)
-            ]),
-            label="split at 2")
-    plt.legend()
-    plt.savefig("images/split_4.png")
-
-    print(score1 == score2)
+    assert left_result == 0.5
+    assert right_result == 2.5
 
 def plot_sin_regression_tree():
     x = np.expand_dims(np.linspace(-6, 6, 100), 0)
     y = np.sin(x[0])
 
-    tree = RegressionTree().train(x, y)
+    tree = RegressionTree(init_plot=True).train(x, y, max_deph=2, min_elements=2)
+
+    from sklearn.tree import DecisionTreeRegressor
+    tree_sklearn = DecisionTreeRegressor(max_depth=2).fit(x.T, y)
+
     y_hat = tree.predict(x)
+    y_hat_sklearn = tree_sklearn.predict(x.T)
 
     plt.clf()
     plt.plot(x[0], y, label="Sin")
     plt.plot(x[0], y_hat, label="Prediction")
+    plt.plot(x[0], y_hat_sklearn, label="Prediction Sklearn")
     plt.legend()
     plt.savefig("images/regression_sin.png")
+    tree.graph.render("images/regression_tree_sin", format="png")
 
+    from sklearn.metrics import mean_squared_error
+    print(f"MSE: {mean_squared_error(y, y_hat)}")
+    print(f"Sklearn MSE: {mean_squared_error(y, y_hat_sklearn)}")
 
 def plot_sigmoid_regression_tree():
     x = np.expand_dims(np.linspace(-6, 6, 1000), 0)
@@ -78,8 +61,10 @@ def plot_graph_regression_tree():
 
     x = np.expand_dims(np.linspace(-6, 6, 1000), 0)
     y = 1 / (1+np.exp(-x[0]))
-    tree = RegressionTree(init_plot=True).train(x, y, max_deph=4, min_elements=2)
+    tree = RegressionTree(init_plot=True).train(x, y, max_deph=10, min_elements=1)
 
-    tree.graph.render("images/regression_tree")
+    tree.graph.render("images/regression_tree", format="png")
 
-plot_graph_regression_tree()
+# plot_graph_regression_tree()
+plot_sin_regression_tree()
+# plot_sigmoid_regression_tree()
