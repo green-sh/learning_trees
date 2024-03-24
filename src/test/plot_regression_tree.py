@@ -25,10 +25,10 @@ def plot_sin_regression_tree():
     y = np.sin(x[0])
     # y = 2*x[0]**2 + 3
 
-    tree = RegressionTree(init_plot=True).train(x, y, max_deph=10, min_elements=1)
+    tree = RegressionTree(init_plot=True).train(x, y, max_deph=10, min_elements=2)
 
     from sklearn.tree import DecisionTreeRegressor
-    tree_sklearn = DecisionTreeRegressor(max_depth=2).fit(x.T, y)
+    tree_sklearn = DecisionTreeRegressor(max_depth=10).fit(x.T, y)
 
     y_hat = tree.predict(x)
     y_hat_sklearn = tree_sklearn.predict(x.T)
