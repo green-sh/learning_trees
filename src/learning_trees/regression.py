@@ -85,7 +85,7 @@ class RegressionTree:
 
         return res
 
-    def train(self, x, y, max_deph=5, min_elements=2):
+    def train(self, x, y, max_depth=5, min_elements=2):
         best_score = np.infty
         self.best_split_idx = None
         self.best_split_value = None
