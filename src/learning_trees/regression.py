@@ -30,7 +30,6 @@ def get_best_split(x, y, idx_feature):
     best_score = np.infty
     best_prediction_left = None
     best_prediction_right = None
-    unique_values = 0
 
     for split_idx in range(1, len(sorted_x)):
         x_value = sorted_x[split_idx]
@@ -38,8 +37,6 @@ def get_best_split(x, y, idx_feature):
         if split_idx < (len(sorted_x) - 1) and x_value == sorted_x[split_idx + 1]:
             # print("wth")
             continue
-        
-        unique_values += 1
 
         left_prediction = np.mean(sorted_y[:split_idx])
         right_prediction = np.mean(sorted_y[split_idx:])
@@ -57,7 +54,7 @@ def get_best_split(x, y, idx_feature):
     if best_score is np.infty:
         raise ValueError("No split found")
     
-    return unique_values, best_split_value, best_split_idx, best_score, best_prediction_left, best_prediction_right
+    return best_split_value, best_split_idx, best_score, best_prediction_left, best_prediction_right
 
 
 class ValueNode:
@@ -96,7 +93,7 @@ class RegressionTree:
         best_right_prediction = None
         self.best_feature = None
         for feature_idx in range(len(x)):
-            unique_values, split_value, split_idx, score, left_prediction, right_prediction = get_best_split(
+            split_value, split_idx, score, left_prediction, right_prediction = get_best_split(
                 x, y, feature_idx
             )
             if score < best_score and sum(x[feature_idx] < split_value) != 0 and sum(x[feature_idx] >= split_value) != 0:
@@ -126,12 +123,12 @@ class RegressionTree:
         x_right, y_right = x[:, self.best_split_idx:], y[self.best_split_idx:]
 
         # base case less than {min_elements} unique values left in x
-        if unique_values <= min_elements:
+        if len(np.unique(x_left)) <= min_elements:
             self.left = ValueNode(best_left_prediction, graph=self.graph, parent_name=str(id(self)))
         else:
             self.left = RegressionTree(graph=self.graph, parent_name=str(id(self))).train(x_left, y_left, max_deph=max_deph - 1, min_elements=min_elements)
             
-        if unique_values <= min_elements:
+        if len(np.unique(x_right)) <= min_elements:
             self.right = ValueNode(best_right_prediction, graph=self.graph, parent_name=str(id(self)))
         else:
             self.right = RegressionTree(graph=self.graph, parent_name=str(id(self))).train(x_right, y_right, max_deph=max_deph - 1, min_elements=min_elements)
