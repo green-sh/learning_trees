@@ -44,8 +44,8 @@ def get_best_split(x, y, idx_feature):
         left_prediction = np.mean(sorted_y[:split_idx])
         right_prediction = np.mean(sorted_y[split_idx:])
 
-        score = np.mean((sorted_y[:split_idx] - left_prediction) ** 2) \
-            + np.mean((sorted_y[split_idx:] - right_prediction) ** 2)
+        score = ((sorted_y[:split_idx] - left_prediction) ** 2).sum() \
+            + ((sorted_y[split_idx:] - right_prediction) ** 2).sum()
         
         if score < best_score:
             best_score = score
@@ -72,7 +72,6 @@ class ValueNode:
         return np.full(x.shape[1], self.value)
 
 # TODO: implement Node class instead of ValueNode and RegressionTree
-    
 class RegressionTree:
     def __init__(self, init_plot = False, graph = None, parent_name=None) -> None:
         self.graph = graph
