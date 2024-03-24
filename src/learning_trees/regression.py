@@ -35,14 +35,16 @@ def get_best_split(x, y, idx_feature):
         split = (sorted_x[split_idx] + sorted_x[split_idx - 1]) / 2
         mask = sorted_x < split
         if sum(mask) == 0 or sum(~mask) == 0:
+            print("wth")
             continue
 
-        left_prediction = np.mean(sorted_y[mask])
-        right_prediction = np.mean(sorted_y[~mask])
-        score = np.mean((sorted_y[mask] - left_prediction) ** 2) \
-            + np.mean((sorted_y[~mask] - right_prediction) ** 2)
+        left_prediction = np.mean(sorted_y[:split_idx])
+        right_prediction = np.mean(sorted_y[split_idx:])
+
+        score = np.mean((sorted_y[:split_idx] - left_prediction) ** 2) \
+            + np.mean((sorted_y[split_idx:] - right_prediction) ** 2)
         
-        if score <= best_score:
+        if score < best_score:
             best_score = score
             best_split = split
             best_prediction_left = left_prediction
