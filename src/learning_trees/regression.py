@@ -85,7 +85,7 @@ class RegressionTree:
 
         return res
 
-    def train(self, x, y, max_depth=5, min_elements=2):
+    def train(self, x, y, max_depth=5, min_elements=1):
         best_score = np.infty
         self.best_split_idx = None
         self.best_split_value = None
@@ -123,12 +123,12 @@ class RegressionTree:
         x_right, y_right = x[:, ~mask], y[~mask]
 
         # base case less than {min_elements} unique values left in x
-        if len(np.unique(x_left)) <= min_elements:
+        if len(np.unique(x_left)) <= min_elements or x_left.shape[1] <= min_elements:
             self.left = ValueNode(best_left_prediction, graph=self.graph, parent_name=str(id(self)))
         else:
             self.left = RegressionTree(graph=self.graph, parent_name=str(id(self))).train(x_left, y_left, max_depth=max_depth - 1, min_elements=min_elements)
             
-        if len(np.unique(x_right)) <= min_elements:
+        if len(np.unique(x_right)) <= min_elements or x_right.shape[1] <= min_elements:
             self.right = ValueNode(best_right_prediction, graph=self.graph, parent_name=str(id(self)))
         else:
             self.right = RegressionTree(graph=self.graph, parent_name=str(id(self))).train(x_right, y_right, max_depth=max_depth - 1, min_elements=min_elements)

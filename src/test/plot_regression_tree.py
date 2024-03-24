@@ -25,8 +25,8 @@ def plot_sin_regression_tree():
     y = np.sin(x[0])
     # y = 2*x[0]**2 + 3
 
-    depth = 3
-    tree = RegressionTree(init_plot=True).train(x, y, max_depth=depth, min_elements=2)
+    depth = 10
+    tree = RegressionTree(init_plot=True).train(x, y, max_depth=depth, min_elements=1)
 
     from sklearn.tree import DecisionTreeRegressor
     tree_sklearn = DecisionTreeRegressor(max_depth=depth).fit(x.T, y)
