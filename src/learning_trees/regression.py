@@ -30,13 +30,16 @@ def get_best_split(x, y, idx_feature):
     best_score = np.infty
     best_prediction_left = None
     best_prediction_right = None
+    unique_values = 0
 
     for split_idx in range(1, len(sorted_x)):
-        split = (sorted_x[split_idx] + sorted_x[split_idx - 1]) / 2
-        mask = sorted_x < split
-        if sum(mask) == 0 or sum(~mask) == 0:
-            print("wth")
+        x_value = sorted_x[split_idx]
+        # iterate to get to the last sample of a certain value in a feature
+        if split_idx < (len(sorted_x) - 1) and x_value == sorted_x[split_idx + 1]:
+            # print("wth")
             continue
+        
+        unique_values += 1
 
         left_prediction = np.mean(sorted_y[:split_idx])
         right_prediction = np.mean(sorted_y[split_idx:])
@@ -46,14 +49,15 @@ def get_best_split(x, y, idx_feature):
         
         if score < best_score:
             best_score = score
-            best_split = split
+            best_split_idx = split_idx
+            best_split_value = sorted_x[best_split_idx]
             best_prediction_left = left_prediction
             best_prediction_right = right_prediction
 
     if best_score is np.infty:
         raise ValueError("No split found")
     
-    return best_split, best_score, best_prediction_left, best_prediction_right
+    return unique_values, best_split_value, best_split_idx, best_score, best_prediction_left, best_prediction_right
 
 
 class ValueNode:
@@ -78,7 +82,7 @@ class RegressionTree:
             self.graph = graphviz.Digraph()
 
     def predict(self, x: np.ndarray[np.ndarray[np.number]]):
-        mask = x[self.best_feature] < self.best_split
+        mask = x[self.best_feature] < self.best_split_value
         res = np.empty(len(x[self.best_feature]))
         res[mask == True] = self.left.predict(x[:, mask == True])
         res[mask == False] = self.right.predict(x[:, mask == False])
@@ -87,49 +91,51 @@ class RegressionTree:
 
     def train(self, x, y, max_deph=5, min_elements=2):
         best_score = np.infty
-        self.best_split = None
+        self.best_split_idx = None
+        self.best_split_value = None
         best_left_prediction = None
         best_right_prediction = None
         self.best_feature = None
         for feature_idx in range(len(x)):
-            split_point, score, left_prediction, right_prediction = get_best_split(
+            unique_values, split_value, split_idx, score, left_prediction, right_prediction = get_best_split(
                 x, y, feature_idx
             )
-            if score < best_score and sum(x[feature_idx] < split_point) != 0 and sum(x[feature_idx] >= split_point) != 0:
+            if score < best_score and sum(x[feature_idx] < split_value) != 0 and sum(x[feature_idx] >= split_value) != 0:
                 best_score = score
                 best_left_prediction = left_prediction
                 best_right_prediction = right_prediction
-                self.best_split = split_point
+                self.best_split_idx = split_idx
+                self.best_split_value = split_value
                 self.best_feature = feature_idx
         
         if self.best_feature is None:
             raise ValueError("No split found")
 
         if self.graph:
-            self.graph.node(str(id(self)), f"{self.best_feature}\n{self.best_split:.2f}")
+            self.graph.node(str(id(self)), f"{self.best_feature}\n{self.best_split_value:.2f}")
             if self.parent_name:
                 self.graph.edge(self.parent_name, str(id(self)))
 
+        # base case max depth reached
         if max_deph <= 1:
             self.left = ValueNode(best_left_prediction, graph=self.graph, parent_name=str(id(self)))
             self.right = ValueNode(best_right_prediction, graph=self.graph, parent_name=str(id(self)))
             return self
 
         # Do the split
-        mask = x[self.best_feature] < self.best_split
-        x_left, y_left = x[:, mask == True], y[mask == True]
-        x_right, y_right = x[:, mask == False], y[mask == False]
+        x_left, y_left = x[:, :self.best_split_idx], y[:self.best_split_idx]
+        x_right, y_right = x[:, self.best_split_idx:], y[self.best_split_idx:]
 
+        # base case only {min_elements} samples left in x
         # Check if minimal minimal amounts of elements are there
-        if sum(mask == True) <= min_elements:
+        if unique_values <= min_elements:
             self.left = ValueNode(best_left_prediction, graph=self.graph, parent_name=str(id(self)))
         else:
             self.left = RegressionTree(graph=self.graph, parent_name=str(id(self))).train(x_left, y_left, max_deph=max_deph - 1, min_elements=min_elements)
             
-        if sum(mask == False) <= min_elements:
+        if unique_values <= min_elements:
             self.right = ValueNode(best_right_prediction, graph=self.graph, parent_name=str(id(self)))
         else:
             self.right = RegressionTree(graph=self.graph, parent_name=str(id(self))).train(x_right, y_right, max_deph=max_deph - 1, min_elements=min_elements)
 
         return self
-
